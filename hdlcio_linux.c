@@ -39,7 +39,7 @@ tcflush(siofd,TCIOFLUSH);  // сбрасываем недочитанный бу
 
 write(siofd,"\x7e",1);  // отсылаем префикс
 
-if (write(siofd,outcmdbuf,outlen) == 0) {   printf("\n Ошибка записи команды");return 0;  }
+if (write(siofd,outcmdbuf,outlen) == 0) {   printf("\n Command record error");return 0;  }
 tcdrain(siofd);  // ждем окончания вывода блока
 
 return 1;
@@ -60,11 +60,11 @@ unsigned char replybuf[14000];
 
 incount=0;
 if (read(siofd,&c,1) != 1) {
-//  printf("\n Нет ответа от модема");
+//  printf("\n No response from the modem");
   return 0; // модем не ответил или ответил неправильно
 }
 //if (c != 0x7e) {
-//  printf("\n Первый байт ответа - не 7e: %02x",c);
+//  printf("\n The first byte of the response is not 7e: %02x",c);
 //  return 0; // модем не ответил или ответил неправильно
 //}
 replybuf[incount++]=c;
@@ -73,7 +73,7 @@ replybuf[incount++]=c;
 if (masslen != 0) {
  res=read(siofd,replybuf+1,masslen-1);
  if (res != (masslen-1)) {
-   printf("\nСлишком короткий ответ от модема: %i байт, ожидалось %i байт\n",res+1,masslen);
+   printf("\n Modem response is too short: %i bytes, expected %i bytes\n",res+1,masslen);
    dump(replybuf,res+1,0);
    return 0;
  }  
@@ -192,7 +192,7 @@ strcat(devstr,devname);
 
 siofd = open(devstr, O_RDWR | O_NOCTTY |O_SYNC);
 if (siofd == -1) {
-  printf("\n! - Последовательный порт %s не открывается\n", devname); 
+  printf("\n! - Serial port %s is not open\n", devname); 
   exit(0);
 }
 bzero(&sioparm, sizeof(sioparm)); // готовим блок атрибутов termios
@@ -247,7 +247,7 @@ char fpattern[5];
 sprintf(fpattern,"%02i",num); // образец для поиска файла по 3 цифрам номера
 fdir=opendir(dirname);
 if (fdir == 0) {
-  printf("\n Каталог %s не открывается\n",dirname);
+  printf("\n The %s directory cannot be opened\n",dirname);
   exit(1);
 }
 
@@ -268,13 +268,13 @@ strcat(filename,dentry->d_name);
 // 00-00000200-M3Boot.bin
 //проверяем имя файла на наличие знаков '-'
 if ((dentry->d_name[2] != '-') || (dentry->d_name[11] != '-')) {
-  printf("\n Неправильный формат имени файла - %s\n",dentry->d_name);
+  printf("\n Incorrect file name format - %s\n",dentry->d_name);
   exit(1);
 }
 
 // проверяем цифровое поле ID раздела
 if (strspn(dentry->d_name+3,"0123456789AaBbCcDdEeFf") != 8) {
-  printf("\n Ошибка в идентификаторе раздела - нецифровой знак - %s\n",filename);
+  printf("\n Error in partition ID - non-numeric character - %s\n",filename);
   exit(1);
 }  
 sscanf(dentry->d_name+3,"%8x",id);
@@ -282,17 +282,17 @@ sscanf(dentry->d_name+3,"%8x",id);
 // Проверяем доступность и читаемость файла
 in=fopen(filename,"r");
 if (in == 0) {
-  printf("\n Ошибка открытия файла %s\n",filename);
+  printf("\n Error opening file %s\n",filename);
   exit(1);
 }
 if (fread(&pt,1,4,in) != 4) {
-  printf("\n Ошибка чтения файла %s\n",filename);
+  printf("\n Error reading file %s\n",filename);
   exit(1);
 }
   
 // проверяем, что файл - сырой образ, без заголовка
 if (pt == 0xa55aaa55) {
-  printf("\n Файл %s имеет заголовок - для прошивки не подходит\n",filename);
+  printf("\n The %s file has a header, so it is not suitable for flashing\n",filename);
   exit(1);
 }
 

@@ -188,7 +188,7 @@ hcrc=ptable[npart].hd.crc;
 ptable[npart].hd.crc=0;  // старая CRC в рассчете не учитывается
 crc=crc16((uint8_t*)&ptable[npart].hd,sizeof(struct pheader));
 if (crc != hcrc) {
-    printf("\n! Раздел %s (%02x) - ошибка контрольной суммы заголовка",ptable[npart].pname,ptable[npart].hd.code>>16);
+    printf("\n! Section %s (%02x) - Header checksum error",ptable[npart].pname,ptable[npart].hd.code>>16);
     errflag=1;
 }  
 ptable[npart].hd.crc=crc;  // восстанавливаем CRC
@@ -196,12 +196,12 @@ ptable[npart].hd.crc=crc;  // восстанавливаем CRC
 // вычисляем и проверяем CRC раздела
 calc_crc16(npart);
 if (crcblocksize != crcsize(npart)) {
-    printf("\n! Раздел %s (%02x) - неправильный размер блока контрольных сумм",ptable[npart].pname,ptable[npart].hd.code>>16);
+    printf("\n! Section %s (%02x) - Incorrect checksum block size",ptable[npart].pname,ptable[npart].hd.code>>16);
     errflag=1;
 }    
   
 else if (memcmp(crcblock,ptable[npart].csumblock,crcblocksize) != 0) {
-    printf("\n! Раздел %s (%02x) - неправильная блочная контрольная сумма",ptable[npart].pname,ptable[npart].hd.code>>16);
+    printf("\n! Section %s (%02x) - Incorrect block checksum",ptable[npart].pname,ptable[npart].hd.code>>16);
     errflag=1;
 }  
   
@@ -219,7 +219,7 @@ if ((*(uint16_t*)ptable[npart].pimage) == 0xda78) {
   // распаковываем образ раздела
   res=uncompress (zbuf, &zlen, ptable[npart].pimage, ptable[npart].hd.psize);
   if (res != Z_OK) {
-    printf("\n! Ошибка распаковки раздела %s (%02x)\n",ptable[npart].pname,ptable[npart].hd.code>>16);
+    printf("\n! Error unpacking partition %s (%02x)\n",ptable[npart].pname,ptable[npart].hd.code>>16);
     errflag=1;
   }
   // создаем новый буфер образа раздела и копируем в него рапаковынные данные
@@ -243,11 +243,11 @@ if ((ptable[npart].pimage[0] == 0x5d) && (*(uint64_t*)(ptable[npart].pimage+5) =
   // распаковываем образ раздела
   zlen=lzma_decode(ptable[npart].pimage, ptable[npart].hd.psize, zbuf);
   if (zlen>100 * 1024 * 1024) {
-    printf("\n Превышен размер буфера\n");
+    printf("\n Buffer size is exceeded\n");
     exit(1);
   }  
   if (res == -1) {
-    printf("\n! Ошибка распаковки раздела %s (%02x)\n",ptable[npart].pname,ptable[npart].hd.code>>16);
+    printf("\n! Error unpacking partition %s (%02x)\n",ptable[npart].pname,ptable[npart].hd.code>>16);
     errflag=1;
   }
   // создаем новый буфер образа раздела и копируем в него рапаковынные данные
@@ -294,13 +294,13 @@ while (fread(&i,1,4,in) == 4) {
   if (i == dpattern) break;
 }
 if (feof(in)) {
-  printf("\n В файле не найдены разделы - файл не содержит образа прошивки\n");
+  printf("\n There are no partitions found in the file - the file does not contain a firmware image\n");
   exit(0);
 }  
 
 // текущая позиция в файле должна быть не ближе 0x60 от начала - размер заголовка всего файла
 if (ftell(in)<0x60) {
-    printf("\n Заголовок файла имеет неправильный размер\n");
+    printf("\n The file header is not the correct size\n");
     exit(0);
 }    
 fseek(in,-0x60,SEEK_CUR); // отъезжаем на начало BIN-файла
@@ -311,15 +311,15 @@ hd_dload_id=prefix[0];
 // если принудительно dload_id не установлен - выбираем его из заголовка
 if (dload_id == -1) dload_id=hd_dload_id;
 if (dload_id > 0xf) {
-  printf("\n Неверный код типа прошивки (dload_id) в заголовке - %x",dload_id);
+  printf("\n Invalid firmware type code (dload_id) in header - %x",dload_id);
   exit(0);
 }  
-printf("\n Код файла прошивки: %x (%s)\n",hd_dload_id,fw_description(hd_dload_id));
+printf("\n Firmware file code: %x (%s)\n",hd_dload_id,fw_description(hd_dload_id));
 
 // поиск остальных разделов
 
 do {
-  printf("\r Поиск раздела # %i",npart); fflush(stdout);	
+  printf("\r Search for partition # %i",npart); fflush(stdout);	
   if (fread(&i,1,4,in) != 4) break; // конец файла
   if (i != dpattern) break;         // образец не найден - конец цепочки разделов
   fseek(in,-4,SEEK_CUR);            // отъезжаем назад, на начало заголовка
@@ -329,14 +329,14 @@ printf("\r                                 \r");
 
 // ищем цифровую подпись
 signsize=serach_sign();
-if (signsize == -1) printf("\n Цифровая подпись: не найдена");
+if (signsize == -1) printf("\n Digital signature: not found");
 else {
-  printf("\n Цифровая подпись: %i байт",signsize);
-  printf("\n Хеш открытого ключа: %s",signver_hash);
+  printf("\n Digital signature: %i byte",signsize);
+  printf("\n Public key hash: %s",signver_hash);
 }
 if (((signsize == -1) && (dload_id>7)) ||
     ((signsize != -1) && (dload_id<8))) 
-    printf("\n ! ВНИМАНИЕ: Наличие цифровой подписи не соответствует коду типа прошивки: %02x",dload_id);
+    printf("\n ! CAUTION: The presence of digital signature does not correspond to the firmware type code: %02x",dload_id);
 
 
 return npart;
@@ -351,7 +351,7 @@ void findfiles (char* fdir) {
 char filename[200];  
 FILE* in;
   
-printf("\n Поиск файлов-образов разделов...\n\n ##   Размер      ID        Имя          Файл\n-----------------------------------------------------------------\n");
+printf("\n Search for partition image files...\n\n ## Size ID Name File\n-----------------------------------------------------------------\n");
 
 for (npart=0;npart<30;npart++) {
     if (find_file(npart, fdir, filename, &ptable[npart].hd.code, &ptable[npart].hd.psize) == 0) break; // конец поиска - раздела с таким ID не нашли
@@ -362,14 +362,14 @@ for (npart=0;npart<30;npart++) {
     // распределяем память под образ раздела
     ptable[npart].pimage=malloc(ptable[npart].hd.psize);
     if (ptable[npart].pimage == 0) {
-      printf("\n! Ошибка распределения памяти, раздел #%i, размер = %i байт\n",npart,ptable[npart].hd.psize);
+      printf("\n! Memory allocation error, partition #%i, size = %i bytes\n",npart,ptable[npart].hd.psize);
       exit(0);
     }
     
     // читаем образ в буфер
     in=fopen(filename,"rb");
     if (in == 0) {
-      printf("\n Ошибка открытия файла %s",filename);
+      printf("\n Error opening file %s",filename);
       return;
     } 
     fread(ptable[npart].pimage,ptable[npart].hd.psize,1,in);
@@ -377,7 +377,7 @@ for (npart=0;npart<30;npart++) {
       
 }
 if (npart == 0) {
- printf("\n! Не найдено ни одного файла с образом раздела в каталоге %s",fdir);
+ printf("\n! No partition image file found in %s directory",fdir);
  exit(0);
 } 
 }

@@ -62,10 +62,10 @@ printf("\n Утилита предназначена для прошивки м�
 %s [ключи] <имя файла для загрузки или имя каталога с файлами>\n\n\
  Допустимы следующие ключи:\n\n"
 #ifndef WIN32
-"-p <tty> - последовательный порт для общения с загрузчиком (по умолчанию /dev/ttyUSB0)\n"
+"-p <tty> - serial port for communication with the bootloader (by default /dev/ttyUSB0)\n"
 #else
-"-p # - номер последовательного порта для общения с загрузчиком (например, -p8)\n"
-"  если ключ -p не указан, производится автоопределение порта\n"
+"-p # - number of serial port for communication with the loader (e.g. -p8)\n"
+"  If the -p key is not specified, port auto-detection is performed\n"
 #endif
 "-n       - режим мультифайловой прошивки из указанного каталога\n\
 -g#      - установка режима цифровой подписи\n\
@@ -126,24 +126,24 @@ printf("\n Утилита предназначена для прошивки м�
      return -1;
   }
 }  
-printf("\n Программа для прошивки устройств на Balong-чипсете, V3.0.%i, (c) forth32, 2015, GNU GPLv3",BUILDNO);
+printf("\n Program for flashing Balong-chipset devices, V3.0.%i, (c) forth32, 2015, GNU GPLv3",BUILDNO);
 #ifdef WIN32
-printf("\n Порт для Windows 32bit  (c) rust3028, 2016");
+printf("\n Port for Windows 32bit (c) rust3028, 2016");
 #endif
 printf("\n--------------------------------------------------------------------------------------------------\n");
 
 if (eflag&sflag) {
-  printf("\n Ключи -s и -e несовместимы\n");
+  printf("\n The -s and -e keys are incompatible\n");
   return -1;
 }  
 
 if (kflag&rflag) {
-  printf("\n Ключи -k и -r несовместимы\n");
+  printf("\n The -k and -r keys are incompatible\n");
   return -1;
 }  
 
 if (nflag&(eflag|sflag|mflag)) {
-  printf("\n Ключ -n несовместим с ключами -s, -m и -e\n");
+  printf("\n The -n key is incompatible with the -s, -m, and -e keys\n");
   return -1;
 }  
   
@@ -157,9 +157,9 @@ if ((optind>=argc)&rflag) goto sio;
 //--------------------------------------------
 if (optind>=argc) {
   if (nflag)
-    printf("\n - Не указан каталог с файлами\n");
+    printf("\n - No directory with files is specified\n");
   else 
-    printf("\n - Не указано имя файла для загрузки, используйте ключ -h для подсказки\n");
+    printf("\n - No file name is specified for downloading, use the -h key for guidance\n");
   return -1;
 }  
 
@@ -170,7 +170,7 @@ else {
   // для однофайловых операций
 in=fopen(argv[optind],"rb");
 if (in == 0) {
-  printf("\n Ошибка открытия %s",argv[optind]);
+  printf("\n Error opening %s",argv[optind]);
   return -1;
 }
 }
@@ -190,7 +190,7 @@ if (mflag) show_file_map();
 
 // выход по ошибкам CRC
 if (!fflag && errflag) {
-    printf("\n\n! Входной файл содержит ошибки - завершаем работу\n");
+    printf("\n\n\n! The input file contains errors - terminate the work\n");
     return -1; 
 }
 
@@ -213,7 +213,7 @@ open_port(devname);
 res=dloadversion();
 if (res == -1) return -2;
 if (res == 0) {
-  printf("\n Модем уже находится в HDLC-режиме");
+  printf("\n The modem is already in HDLC mode");
   goto hdlc;
 }
 

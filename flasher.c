@@ -37,8 +37,8 @@ int errcode;
 //***************************************************
 void printerr() {
   
-if (errcode == -1) printf(" - таймаут команды\n");
-else printf(" - код ошибки %02x\n",errcode);
+if (errcode == -1) printf(" - timeout\n");
+else printf(" - error code %02x\n",errcode);
 }
 
 //***************************************************
@@ -191,14 +191,14 @@ void flash_all() {
 int32_t part;
 uint32_t blk,maxblock;
 
-printf("\n##  ---- Имя раздела ---- записано");
+printf("\n## ---- Partition name ---- recorded");
 // Главный цикл записи разделов
 for(part=0;part<npart;part++) {
 printf("\n");  
 //  printf("\n02i %s)",part,ptable[part].pname);
  // команда начала раздела
  if (!dload_start(ptable[part].hd.code,ptable[part].hd.psize)) {
-   printf("\r! Отвергнут заголовок раздела %i (%s)",part,ptable[part].pname);
+   printf("\r! Section title %i (%s) rejected",part,ptable[part].pname);
    printerr();
    exit(-2);
  }  
@@ -211,7 +211,7 @@ printf("\n");
 
     // Отсылаем очередной блок
   if (!dload_block(part,blk,ptable[part].pimage)) {
-   printf("\n! Отвергнут блок %i раздела %i (%s)",blk,part,ptable[part].pname);
+   printf("\n! Block %i of partition %i (%s) rejected",blk,part,ptable[part].pname);
    printerr();
    exit(-2);
   }  
@@ -219,7 +219,7 @@ printf("\n");
 
 // закрываем раздел
  if (!dload_end(ptable[part].hd.code,ptable[part].hd.psize)) {
-   printf("\n! Ошибка закрытия раздела %i (%s)",part,ptable[part].pname);
+   printf("\n! Error closing partition %i (%s)",part,ptable[part].pname);
    printerr();
    exit(-2);
  }  
